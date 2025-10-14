@@ -34,7 +34,7 @@ def normalize_numeric_sequences(text: str) -> str:
             elif char == '.':
                 result.append('ponto')
             elif char == '-':
-                result.append('hífen')
+                result.append('traço')
         
         return ' '.join(result)
     
