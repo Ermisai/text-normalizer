@@ -15,6 +15,12 @@ Testes principais que cobrem todas as funcionalidades básicas:
 - **TestRemoveNonAlphanumeric**: Testa remoção de caracteres especiais
 - **TestNormalizeText**: Testa a função principal que aplica todas as normalizações
 
+### `test_urls.py`
+Testes específicos para normalização de URLs e emails:
+
+- **TestNormalizeUrls**: Testa conversão de URLs, domínios e emails para forma falada
+- **TestUrlsIntegration**: Testa integração da normalização de URLs com outras funcionalidades
+
 ### `test_edge_cases.py` 
 Testes para casos extremos e edge cases:
 
@@ -54,15 +60,21 @@ Os testes cobrem:
 - Números decimais
 - Casos especiais (zero, números com zeros à esquerda)
 
-✅ **Remoção de caracteres especiais**
+✅ **normalize_urls()** - 18 testes
+- URLs HTTPS/HTTP, domínios www, emails, caminhos, parâmetros, fragmentos
+
+✅ **remove_non_alphanumeric()** - 4 testes
 - Tokens de redes sociais (@usuario, #hashtag)
 - Caracteres especiais problemáticos
 - Preservação de pontuação básica
 
-✅ **Integração completa**
-- Ordem correta das operações
-- Múltiplas normalizações no mesmo texto
-- Textos complexos do mundo real
+✅ **Integração completa** - 8 testes
+- Ordem correta das operações, múltiplas normalizações, casos complexos
+
+✅ **Integração de URLs** - 4 testes  
+- URLs com outras funcionalidades, casos complexos do mundo real
+
+✅ **Casos extremos** - 16 testes
 
 ## Como Executar os Testes
 
@@ -106,9 +118,9 @@ python -m pytest tests/ --cov=text_normalizer --cov-report=html
 
 ## Estatísticas
 
-- **Total de testes**: 58
-- **Classes de teste**: 10
-- **Funcionalidades testadas**: 7
+- **Total de testes**: 80
+- **Classes de teste**: 12
+- **Funcionalidades testadas**: 8
 - **Taxa de aprovação**: 100%
 
 ## Próximos Passos

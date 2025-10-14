@@ -5,6 +5,7 @@ from .normalizer import (
     normalize_time,
     normalize_numbers,
     normalize_numeric_sequences,
+    normalize_urls,
     remove_non_alphanumeric
 )
 
@@ -15,5 +16,6 @@ __all__ = [
     "normalize_time",
     "normalize_numbers",
     "normalize_numeric_sequences",
+    "normalize_urls",
     "remove_non_alphanumeric"
 ]

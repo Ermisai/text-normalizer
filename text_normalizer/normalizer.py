@@ -311,6 +311,160 @@ def remove_non_alphanumeric(text: str) -> str:
     
     return cleaned_text.strip()
 
+def normalize_urls(text: str) -> str:
+    """
+    Converte URLs para uma forma falada compreensível para TTS.
+    Exemplos:
+    - https://www.google.com -> agá tê tê pê ésse dois pontos barra barra dábliu dábliu dábliu ponto google ponto com
+    - http://example.org/path -> agá tê tê pê dois pontos barra barra example ponto org barra path
+    - www.site.com.br -> dábliu dábliu dábliu ponto site ponto com ponto bê érre
+    - user@email.com -> user arroba email ponto com
+    """
+    import re
+    
+    # Padrão para URLs completas (http/https) - melhorado para capturar caminhos
+    url_pattern = r'https?://(?:www\.)?([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,})([^\s]*)?'
+    
+    # Padrão para www sem protocolo - melhorado para capturar caminhos
+    www_pattern = r'(?<!\w)www\.([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,})([^\s]*)?'
+    
+    # Padrão para emails
+    email_pattern = r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b'
+    
+    # Padrão para domínios simples (mais restritivo para evitar falsos positivos)
+    domain_pattern = r'(?<!\w)([a-zA-Z0-9\-]+\.(?:com\.br|co\.uk|co\.jp|com|org|net|edu|gov|mil|br|de|fr|it|es))\b(?![a-zA-Z0-9])'
+    
+    def convert_protocol(protocol):
+        """Converte protocolos para forma falada"""
+        if protocol.lower() == 'http':
+            return 'agá tê tê pê'
+        elif protocol.lower() == 'https':
+            return 'agá tê tê pê ésse'
+        return protocol
+    
+    def convert_www():
+        """Converte www para forma falada"""
+        return 'dábliu dábliu dábliu'
+    
+    def convert_domain_part(domain_part):
+        """Converte partes do domínio para forma falada"""
+        # Substituições específicas para TLDs comuns
+        tld_map = {
+            'com': 'com',
+            'org': 'org',
+            'net': 'net',
+            'edu': 'edu',
+            'gov': 'gov',
+            'mil': 'mil',
+            'br': 'bê érre',
+            'uk': 'u kê',
+            'jp': 'jê pê',
+            'de': 'dê ê',
+            'fr': 'êfe érre',
+            'it': 'i tê',
+            'es': 'ê ésse'
+        }
+        
+        # Separar por pontos
+        parts = domain_part.split('.')
+        result_parts = []
+        
+        for part in parts:
+            if part.lower() in tld_map:
+                result_parts.append(tld_map[part.lower()])
+            else:
+                # Para nomes de domínio, manter como está mas separar hífens
+                clean_part = part.replace('-', ' hífen ')
+                result_parts.append(clean_part)
+        
+        return ' ponto '.join(result_parts)
+    
+    def convert_path(path):
+        """Converte caminhos de URL para forma falada"""
+        if not path or path == '/':
+            return ''
+        
+        # Remover barra inicial
+        path = path.lstrip('/')
+        
+        # Substituir caracteres especiais
+        path = path.replace('/', ' barra ')
+        path = path.replace('?', ' interrogação ')
+        path = path.replace('&', ' e comercial ')
+        path = path.replace('=', ' igual ')
+        path = path.replace('#', ' sustenido ')
+        path = path.replace('%', ' por cento ')
+        path = path.replace('-', ' hífen ')
+        path = path.replace('_', ' sublinhado ')
+        
+        return ' ' + path if path else ''
+    
+    def replace_full_url(match):
+        """Substitui URLs completas (com protocolo)"""
+        full_url = match.group(0)
+        domain = match.group(1) if match.group(1) else ''
+        path = match.group(2) if match.group(2) else ''
+        
+        # Extrair protocolo
+        protocol = 'https' if full_url.lower().startswith('https') else 'http'
+        protocol_text = convert_protocol(protocol)
+        
+        # Verificar se tem www
+        www_text = ''
+        if 'www.' in full_url.lower():
+            www_text = convert_www() + ' ponto '
+        
+        domain_text = convert_domain_part(domain)
+        path_text = convert_path(path)
+        
+        return f"{protocol_text} dois pontos barra barra {www_text}{domain_text}{path_text}"
+    
+    def replace_www_url(match):
+        """Substitui URLs que começam com www"""
+        domain = match.group(1)
+        path = match.group(2) if match.group(2) else ''
+        
+        www_text = convert_www() + ' ponto '
+        domain_text = convert_domain_part(domain)
+        path_text = convert_path(path)
+        
+        return f"{www_text}{domain_text}{path_text}"
+    
+    def replace_email(match):
+        """Substitui endereços de email"""
+        email = match.group(0)
+        local, domain = email.split('@')
+        
+        # Limpar caracteres especiais do local
+        local = local.replace('.', ' ponto ')
+        local = local.replace('_', ' sublinhado ')
+        local = local.replace('-', ' hífen ')
+        local = local.replace('+', ' mais ')
+        
+        domain_text = convert_domain_part(domain)
+        
+        return f"{local} arroba {domain_text}"
+    
+    def replace_domain(match):
+        """Substitui domínios simples"""
+        domain = match.group(1)
+        return convert_domain_part(domain)
+    
+    # Aplicar substituições em ordem de prioridade
+    # 1. URLs completas (têm prioridade sobre outros padrões)
+    text = re.sub(url_pattern, replace_full_url, text, flags=re.IGNORECASE)
+    
+    # 2. URLs com www (que não foram capturadas acima)
+    text = re.sub(www_pattern, replace_www_url, text, flags=re.IGNORECASE)
+    
+    # 3. Emails
+    text = re.sub(email_pattern, replace_email, text)
+    
+    # 4. Domínios simples (menor prioridade para evitar falsos positivos)
+    text = re.sub(domain_pattern, replace_domain, text, flags=re.IGNORECASE)
+    
+    return text
+
 def normalize_text(text: str) -> str:
     """
     Aplica todas as normalizações ao texto de entrada:
@@ -318,8 +472,9 @@ def normalize_text(text: str) -> str:
     2. Normaliza datas
     3. Normaliza sequências numéricas (CPF, etc.)
     4. Normaliza horários
-    5. Converte números para extenso
-    6. Remove caracteres não alfanuméricos
+    5. Normaliza URLs e emails
+    6. Converte números para extenso
+    7. Remove caracteres não alfanuméricos
     """
     if not text or not text.strip():
         return text
@@ -339,10 +494,13 @@ def normalize_text(text: str) -> str:
     # 4. Normalizar horários (antes de normalizar números)
     normalized = normalize_time(normalized)
     
-    # 5. Normalizar números
+    # 5. Normalizar URLs e emails (antes de normalizar números)
+    normalized = normalize_urls(normalized)
+    
+    # 6. Normalizar números
     normalized = normalize_numbers(normalized)
     
-    # 6. Limpar caracteres não alfanuméricos
+    # 7. Limpar caracteres não alfanuméricos
     normalized = remove_non_alphanumeric(normalized)
     
     return normalized
