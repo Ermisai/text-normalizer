@@ -1,5 +1,4 @@
 import re
-from typing import Dict, Tuple
 from num2words import num2words
 
 def normalize_numeric_sequences(text: str) -> str:

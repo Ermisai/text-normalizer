@@ -1,4 +1,3 @@
-from . import normalizer
 from .normalizer import (
     normalize_text,
     normalize_currency,
@@ -11,7 +10,6 @@ from .normalizer import (
 )
 
 __all__ = [
-    "normalizer",
     "normalize_text",
     "normalize_currency",
     "normalize_dates",
