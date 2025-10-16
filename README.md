@@ -58,7 +58,7 @@ Ideal para aplicações de **voz (TTS)**, **NLP** ou **pré-processamento de dad
 ## 🧠 Exemplo de Uso Completo
 
 ```python
-from normalizer import normalize_text
+from text_normalizer import normalize_text
 
 texto = "Reunião 05/01/2026 às 14h30, código 12345"
 print(normalize_text(texto))
