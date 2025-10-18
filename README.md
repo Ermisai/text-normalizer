@@ -64,3 +64,25 @@ texto = "Reunião 05/01/2026 às 14h30, código 12345"
 print(normalize_text(texto))
 # ➞ "Reunião cinco de janeiro de dois mil e vinte e seis às quatorze horas e trinta minutos, código um dois três quatro cinco"
 ```
+
+---
+
+## 📦 Instalação
+
+Instale a biblioteca via pip (PyPI):
+
+```bash
+pip install text-normalizer
+```
+
+Para instalar a versão de desenvolvimento a partir do código-fonte local:
+
+```bash
+pip install -e .
+```
+
+Ou instalar diretamente do repositório Git (substitua a URL pelo repositório correto):
+
+```bash
+pip install git+https://github.com/usuario/text-normalizer.git
+```
