@@ -84,5 +84,5 @@ pip install -e .
 Ou instalar diretamente do repositório Git (substitua a URL pelo repositório correto):
 
 ```bash
-pip install git+https://github.com/usuario/text-normalizer.git
+pip install git+https://github.com/ermisai/text-normalizer.git
 ```
