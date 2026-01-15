@@ -293,6 +293,50 @@ def normalize_time(text: str) -> str:
     
     return re.sub(time_pattern, replace_time, text)
 
+def normalize_percentage(text: str) -> str:
+    """
+    Converte símbolos de porcentagem para extenso.
+    Exemplos:
+    - 50% -> cinquenta por cento
+    - 10.5% -> dez vírgula cinco por cento
+    - 100% -> cem por cento
+    """
+    # Padrão para capturar número seguido de %
+    percentage_pattern = r'(\d+(?:[.,]\d+)?)\s*%'
+    
+    def replace_percentage(match):
+        number_str = match.group(1)
+        
+        # Substituir vírgula por ponto para conversão
+        number_str_normalized = number_str.replace(',', '.')
+        
+        try:
+            number = float(number_str_normalized)
+            
+            # Converter número para extenso
+            if number == int(number):
+                number_text = num2words(int(number), lang='pt_BR')
+            else:
+                # Para números decimais
+                integer_part = int(number)
+                decimal_part = round((number - integer_part) * 100)
+                
+                if integer_part == 0:
+                    decimal_digits = str(decimal_part).zfill(2)
+                    decimal_text = num2words(decimal_part, lang='pt_BR')
+                    number_text = f"zero vírgula {decimal_text}"
+                else:
+                    integer_text = num2words(integer_part, lang='pt_BR')
+                    decimal_part = round((number - integer_part) * 10)
+                    decimal_text = num2words(decimal_part, lang='pt_BR')
+                    number_text = f"{integer_text} vírgula {decimal_text}"
+            
+            return f"{number_text} por cento"
+        except ValueError:
+            return match.group(0)
+    
+    return re.sub(percentage_pattern, replace_percentage, text)
+
 def remove_non_alphanumeric(text: str) -> str:
     """
     Remove apenas caracteres especiais problemáticos, mantendo pontuação básica.
@@ -471,9 +515,10 @@ def normalize_text(text: str) -> str:
     2. Normaliza datas
     3. Normaliza sequências numéricas (CPF, etc.)
     4. Normaliza horários
-    5. Normaliza URLs e emails
-    6. Converte números para extenso
-    7. Remove caracteres não alfanuméricos
+    5. Normaliza porcentagens
+    6. Normaliza URLs e emails
+    7. Converte números para extenso
+    8. Remove caracteres não alfanuméricos
     """
     if not text or not text.strip():
         return text
@@ -493,13 +538,16 @@ def normalize_text(text: str) -> str:
     # 4. Normalizar horários (antes de normalizar números)
     normalized = normalize_time(normalized)
     
-    # 5. Normalizar URLs e emails (antes de normalizar números)
+    # 5. Normalizar porcentagens (antes de normalizar números)
+    normalized = normalize_percentage(normalized)
+    
+    # 6. Normalizar URLs e emails (antes de normalizar números)
     normalized = normalize_urls(normalized)
     
-    # 6. Normalizar números
+    # 7. Normalizar números
     normalized = normalize_numbers(normalized)
     
-    # 7. Limpar caracteres não alfanuméricos
+    # 8. Limpar caracteres não alfanuméricos
     normalized = remove_non_alphanumeric(normalized)
     
     return normalized
